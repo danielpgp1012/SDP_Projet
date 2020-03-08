@@ -3,7 +3,6 @@ package ch.epfl.sdp
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -12,23 +11,21 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import java.util.*
 
 
 class GPSActivity : AppCompatActivity() {
 
     private var locationManager: LocationManager? = null
-    var longitudeGPS = 0.0
-    var latitudeGPS = 0.0
-    var longitudeValueGPS: TextView? = null
-    var latitudeValueGPS:TextView? = null
+    private var longitudeGPS = 0.0
+    private var latitudeGPS = 0.0
+    private var longitudeValueGPS: TextView? = null
+    private var latitudeValueGPS: TextView? = null
     private val allPermissionResult = 1011
 
 
@@ -37,21 +34,11 @@ class GPSActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_g_p_s)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
-        longitudeValueGPS = findViewById<TextView>(R.id.longitudeValueGPS)
-        latitudeValueGPS = findViewById<TextView>(R.id.latitudeValueGPS)
-        Log.d("------------------>>>>>", "Init")
-/*
-        val permissions = listOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION)
-        */
-        requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION), allPermissionResult)
+        longitudeValueGPS = findViewById(R.id.longitudeValueGPS)
+        latitudeValueGPS = findViewById(R.id.latitudeValueGPS)
 
-        /*val permissionsToRequest = permissionsToRequest(permissions)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val size = permissionsToRequest.size
-            val array: Array<String> = Array(size) { i:Int -> ""}
-            requestPermissions(permissionsToRequest.
-                    toArray(array), allPermissionResult)
-        };*/
+        requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), allPermissionResult)
+
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -61,29 +48,13 @@ class GPSActivity : AppCompatActivity() {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            Log.d("------------------>>>>>", "Permission not granted !")
             return
         }
+
+        checkLocation()
+
         locationManager?.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER, 2 * 1000, 10f, locationListenerGPS);
-    }
-
-    private fun permissionsToRequest(wantedPermissions: List<String>): ArrayList<String> {
-        val result = ArrayList<String>()
-        for (perm in wantedPermissions) {
-            Log.d("------------------>>>>>", "Perm:$perm")
-            if (!hasPermission(perm)) {
-                Log.d("------------------>>>>>", "Failed:$perm")
-                result.add(perm)
-            }
-        }
-        return result
-    }
-
-    private fun hasPermission(permission: String): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-        } else true
+                LocationManager.GPS_PROVIDER, 2 * 1000, 10f, locationListenerGPS)
     }
 
 
@@ -104,24 +75,22 @@ class GPSActivity : AppCompatActivity() {
     private fun showAlert() {
         val dialog: AlertDialog.Builder = AlertDialog.Builder(this)
         dialog.setTitle("Enable Location")
-                .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
-                        "use this app")
-                .setPositiveButton("Location Settings", DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
+                .setMessage("This part of the app cannot function without location, please enable it")
+                .setPositiveButton("Location Settings") { paramDialogInterface, paramInt ->
                     val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                     startActivity(myIntent)
-                })
-                .setNegativeButton("Cancel", DialogInterface.OnClickListener { paramDialogInterface, paramInt -> })
+                }
+                .setNegativeButton("Cancel") { paramDialogInterface, paramInt -> }
         dialog.show()
     }
 
-    private val locationListenerGPS: LocationListener? = object : LocationListener {
+    private val locationListenerGPS: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             longitudeGPS = location.longitude
             latitudeGPS = location.latitude
-            Log.d("------------>>>>>","$longitudeGPS : $latitudeGPS")
             runOnUiThread {
-                longitudeValueGPS?.text = longitudeGPS.toString() + ""
-                latitudeValueGPS?.text = latitudeGPS.toString() + ""
+                longitudeValueGPS?.text = longitudeGPS.toString()
+                latitudeValueGPS?.text = latitudeGPS.toString()
                 //Toast.makeText(this@GPSActivity, "GPS Provider update", Toast.LENGTH_SHORT).show()
             }
         }
