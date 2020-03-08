@@ -61,6 +61,7 @@ class GPSActivity : AppCompatActivity() {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+            Log.d("------------------>>>>>", "Permission not granted !")
             return
         }
         locationManager?.requestLocationUpdates(
@@ -113,22 +114,6 @@ class GPSActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    fun testPermission(view: View) {
-
-    }
-
-    /*fun toggleGPSUpdates(view: View) {
-            if (!checkLocation()) return
-            val button = view as Button
-            if (button.text == resources.getString(R.string.pause)) {
-                locationManager.removeUpdates(locationListenerGPS)
-                button.setText(R.string.resume)
-            } else {
-                locationManager.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER, 2 * 60 * 1000, 10, locationListenerGPS)
-                button.setText(R.string.pause)
-            }
-        }*/
     private val locationListenerGPS: LocationListener? = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             longitudeGPS = location.longitude
@@ -137,7 +122,7 @@ class GPSActivity : AppCompatActivity() {
             runOnUiThread {
                 longitudeValueGPS?.text = longitudeGPS.toString() + ""
                 latitudeValueGPS?.text = latitudeGPS.toString() + ""
-                Toast.makeText(this@GPSActivity, "GPS Provider update", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this@GPSActivity, "GPS Provider update", Toast.LENGTH_SHORT).show()
             }
         }
 
