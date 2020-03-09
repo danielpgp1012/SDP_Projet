@@ -27,4 +27,8 @@ class MainActivity : AppCompatActivity() {
     fun goToSettings(view: View?){
         startActivity(Intent(this, SettingsActivity::class.java))
     }
+
+    fun goToMap(view: View?){
+        startActivity(Intent(this, MapboxActivity::class.java))
+    }
 }
