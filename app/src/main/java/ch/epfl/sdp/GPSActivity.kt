@@ -9,58 +9,41 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.provider.Settings
-import android.util.Log
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import java.util.*
+import androidx.core.content.ContextCompat
 
 
 class GPSActivity : AppCompatActivity() {
 
     private var locationManager: LocationManager? = null
-    var longitudeGPS = 0.0
-    var latitudeGPS = 0.0
+    var location = Location(LocationManager.GPS_PROVIDER)
     var longitudeValueGPS: TextView? = null
     var latitudeValueGPS:TextView? = null
     private val requestCode = 1011
 
 
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_g_p_s)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
+
         longitudeValueGPS = findViewById<TextView>(R.id.longitudeValueGPS)
         latitudeValueGPS = findViewById<TextView>(R.id.latitudeValueGPS)
 
-        longitudeGPS = Double.NaN
-        latitudeGPS = Double.NaN
+        location.latitude = Double.NaN
+        location.longitude = Double.NaN
         runOnUiThread {
-            longitudeValueGPS?.text = longitudeGPS.toString()
-            latitudeValueGPS?.text = latitudeGPS.toString()
+            updateLocationInUI(location)
         }
-
-
 
         if(checkPermission()){
             locationManager?.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER, 2 * 1000, 10f, locationListenerGPS);
         }
-
-    }
-
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onResume() {
-        super.onResume()
-        checkPermission() && checkLocationSetting()
     }
 
     fun goToMain(view: View?) {
@@ -68,80 +51,66 @@ class GPSActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun checkLocationSetting(): Boolean {
-        if (!isLocationEnabled())
-            showAlert()
-        return isLocationEnabled()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.M)
+    /**
+     * Checks if the location permission is granted and returns a boolean indicating if it is the case
+     */
     private fun checkPermission(): Boolean {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            return true
-        }
-        else{
-            requestPermissions()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), requestCode)
             return false
         }
+        return true
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    private fun requestPermissions(){
-        requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), requestCode)
-        Log.d("-----------------------","request permission")
-
-    }
-
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.d("-----------------------","dawufhuiawhfuwh")
-        if(requestCode == this.requestCode){
-            val granted: Boolean = grantResults.all { i -> i == PackageManager.PERMISSION_GRANTED}
-            if(grantResults.isNotEmpty() && granted){
-                locationManager?.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER, 2 * 1000, 10f, locationListenerGPS);
-            }
-            else{
-                longitudeGPS = Double.NaN
-                latitudeGPS = Double.NaN
-                runOnUiThread {
-                    longitudeValueGPS?.text = longitudeGPS.toString()
-                    latitudeValueGPS?.text = latitudeGPS.toString()
-                    Toast.makeText(this@GPSActivity, "Please Enable Location", Toast.LENGTH_SHORT).show()
-                }
-            }
+        if(requestCode == this.requestCode && checkPermission()){
+            locationManager?.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, 2 * 1000, 10f, locationListenerGPS)
         }
     }
 
-    private fun isLocationEnabled(): Boolean {
-        return locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) ?: false
-    }
-    private fun showAlert() {
-        val dialog: AlertDialog.Builder = AlertDialog.Builder(this)
-        dialog.setTitle("Enable Location")
-                .setMessage("This part of the app cannot function without location, please enable it")
-                .setPositiveButton("Location Settings") { paramDialogInterface, paramInt ->
-                    val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    startActivity(myIntent)
-                }
-                .setNegativeButton("Cancel", DialogInterface.OnClickListener { paramDialogInterface, paramInt -> })
-        dialog.show()
+    /**
+     * update the values in the UI
+     */
+    private fun updateLocationInUI(location: Location){
+        longitudeValueGPS?.text = location.longitude.toString()
+        latitudeValueGPS?.text = location.latitude.toString()
     }
 
     private val locationListenerGPS: LocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            longitudeGPS = location.longitude
-            latitudeGPS = location.latitude
+        override fun onLocationChanged(loc: Location) {
+            location = loc
             runOnUiThread {
-                longitudeValueGPS?.text = longitudeGPS.toString()
-                latitudeValueGPS?.text = latitudeGPS.toString()
-                //Toast.makeText(this@GPSActivity, "GPS Provider update", Toast.LENGTH_SHORT).show()
+                updateLocationInUI(loc)
             }
         }
-
         override fun onStatusChanged(s: String, i: Int, bundle: Bundle) {}
         override fun onProviderEnabled(s: String) {}
-        override fun onProviderDisabled(s: String) {}
+        // Gets triggered when the location permission is revoked while running
+        override fun onProviderDisabled(s: String) {
+            checkPermission()
+            checkLocationSetting()
+        }
+    }
+
+    /**
+     * Checks if the location is enabled on the device and shows a pop-up asking to enable it if it
+     * is not the case
+     */
+    private fun checkLocationSetting(): Boolean {
+        val locationIsEnabled = locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER)?:false
+        if (!locationIsEnabled){
+            val dialog: AlertDialog.Builder = AlertDialog.Builder(this)
+                    .setTitle("Enable Location")
+                    .setMessage("This part of the app cannot function without location, please enable it")
+                    .setPositiveButton("Location Settings") { paramDialogInterface, paramInt ->
+                        val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        startActivity(myIntent)
+                    }
+                    .setNegativeButton("Cancel", DialogInterface.OnClickListener { paramDialogInterface, paramInt -> })
+            dialog.show()
+        }
+        return locationIsEnabled
     }
 }
