@@ -44,13 +44,23 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <Button
+            android:id="@+id/list_dl_maps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="listDlMaps"
+            android:text="List maps"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/dl_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#D93A3A3A">
+        android:background="#D93A3A3A"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -165,6 +175,30 @@
                     android:inputType="numberDecimal" />
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/zoom_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:text="Zoom" />
+
+                <EditText
+                    android:id="@+id/zoom_num"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ems="10"
+                    android:inputType="number" />
+            </LinearLayout>
+
             <Button
                 android:id="@+id/mapbox_savemap"
                 android:layout_width="match_parent"
@@ -173,5 +207,11 @@
                 android:text="Save" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/dl_map_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"></LinearLayout>
 
 </FrameLayout>
