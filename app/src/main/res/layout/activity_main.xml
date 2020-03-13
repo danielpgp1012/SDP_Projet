@@ -22,13 +22,4 @@
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main3_drawer" />
 
-    <Button
-        android:id="@+id/buttonGPS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="goToGPS"
-        android:text="@string/gps_button_text"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
 </androidx.drawerlayout.widget.DrawerLayout>
