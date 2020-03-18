@@ -20,6 +20,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import ch.epfl.sdp.R
+import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.camera.CameraPosition
+import com.mapbox.mapboxsdk.maps.MapView
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
+import com.mapbox.mapboxsdk.maps.Projection
+import com.mapbox.mapboxsdk.maps.Style
 
 class MissionDesignFragment : Fragment() {
 
@@ -31,6 +37,13 @@ class MissionDesignFragment : Fragment() {
     var latitudeValueGPS:TextView? = null
     private val requestCode = 1011
 
+
+
+    private var mapView: MapView? = null
+    private var projection: Projection? = null
+    private var camera: CameraPosition? = null
+
+
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -38,15 +51,9 @@ class MissionDesignFragment : Fragment() {
     ): View? {
         missionDeignViewModel =
                 ViewModelProviders.of(this).get(MissionDeignViewModel::class.java)
-        val root = inflater.inflate(R.layout.fragment_mission_design, container, false)
-        val textView: TextView = root.findViewById(R.id.text_gallery)
-        missionDeignViewModel.text.observe(viewLifecycleOwner, Observer {
-            textView.text = "Misson design fragment \n (select areas here)"
-        })
 
         //setContentView(R.layout.activity_g_p_s)
         locationManager = context!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
-
         location.latitude = Double.NaN
         location.longitude = Double.NaN
         updateLocationInUI(location)
@@ -55,6 +62,24 @@ class MissionDesignFragment : Fragment() {
             locationManager?.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER, 2 * 1000, 10f, locationListenerGPS);
         }
+
+        val root = inflater.inflate(R.layout.fragment_mission_design, container, false)
+        val textView: TextView = root.findViewById(R.id.text_gallery)
+
+        missionDeignViewModel.text.observe(viewLifecycleOwner, Observer {
+            textView.text = "Misson design fragment \n (select areas here)"
+        })
+
+        Mapbox.getInstance(context!!, "sk.eyJ1IjoibXlocmFlbCIsImEiOiJjazduaGgyOWowMTk1M2xsOHQ5d2N6MW02In0.mOwke6u2usaPmvK9asaXew")
+        mapView = root.findViewById(ch.epfl.sdp.R.id.mapView)
+        mapView?.onCreate(savedInstanceState)
+        mapView?.getMapAsync(OnMapReadyCallback { mapboxMap ->
+            mapboxMap.setStyle(Style.OUTDOORS) {
+                // Map is set up and the style has loaded. Now you can add data or make other map adjustments.
+            }
+            projection = mapboxMap.projection
+            camera = mapboxMap.cameraPosition
+        })
 
         return root
     }
